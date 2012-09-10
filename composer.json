@@ -1,5 +1,5 @@
 {
-    "name": "mistylabs/mistyapp",
+    "name": "mystlabs/mistyapp",
     "type": "library",
     "description": "MistyApp - base app for websites",
     "minimum-stability": "dev",
