@@ -7,9 +7,7 @@
         "symfony/http-foundation" : "*",
         "monolog/monolog" : "1.2.*",
         "mystlabs/mistyutils" : "*",
-        "mystlabs/mistydepman" : "*"
-    },
-    "require-future": {
+        "mystlabs/mistydepman" : "*",
         "mystlabs/mistyrouting" : "*",
         "mystlabs/mistydoctrine" : "*",
         "mystlabs/mistyforms" : "*"
