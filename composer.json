@@ -1,0 +1,23 @@
+{
+    "name": "mistylabs/mistyapp",
+    "type": "library",
+    "description": "MistyApp - base app for websites",
+    "minimum-stability": "dev",
+	"require": {
+        "symfony/http-foundation" : "*",
+        "monolog/monolog" : "1.2.*",
+        "mystlabs/mistyutils" : "*",
+        "mystlabs/mistydepman" : "*"
+    },
+    "require-future": {
+        "mystlabs/mistyrouting" : "*",
+        "mystlabs/mistydoctrine" : "*",
+        "mystlabs/mistyforms" : "*"
+    },
+    "require-dev": {
+        "mystlabs/mistytesting" : "*"
+    },
+    "autoload": {
+       "psr-0": {"MistyApp": "src/"}
+    }
+}
