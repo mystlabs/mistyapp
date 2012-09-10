@@ -4,13 +4,17 @@
     "description": "MistyApp - base app for websites",
     "minimum-stability": "dev",
 	"require": {
+        "php": ">=5.4",
         "symfony/http-foundation" : "*",
         "monolog/monolog" : "1.2.*",
         "mystlabs/mistyutils" : "*",
         "mystlabs/mistydepman" : "*",
         "mystlabs/mistyrouting" : "*",
         "mystlabs/mistydoctrine" : "*",
-        "mystlabs/mistyforms" : "*"
+        "smarty/smarty" : "3.1.*"
+    },
+    "require-null": {
+        "mystlabs/mistyforms" : "*",
     },
     "require-dev": {
         "mystlabs/mistytesting" : "*"
