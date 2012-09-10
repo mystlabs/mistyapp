@@ -14,7 +14,7 @@
         "smarty/smarty" : "3.1.*"
     },
     "require-null": {
-        "mystlabs/mistyforms" : "*",
+        "mystlabs/mistyforms" : "*"
     },
     "require-dev": {
         "mystlabs/mistytesting" : "*"
