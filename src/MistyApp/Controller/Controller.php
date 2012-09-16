@@ -41,7 +41,7 @@ class Controller
         // If the controller didn't return a response, we automatically wrap the content in one
         if (!$response instanceof Response) {
             $response = new Response($response);
-            $response->headers->get('Content-type', 'text/html');
+            $response->headers->set('Content-type', 'text/html');
         }
 
         return $response;
