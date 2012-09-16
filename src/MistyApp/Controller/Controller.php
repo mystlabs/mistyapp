@@ -12,23 +12,21 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Controller
 {
-    use Viewable, Container {
-        setupContainer as _setupContainer;
-    }
+    use Viewable, Container;
 
     protected $request;
     protected $router;
+    protected $configuration;
 
     public function __construct(Request $request)
     {
         $this->request = $request;
     }
 
-    public function setupContainer(Provider $provider)
+    public function initialize()
     {
-        $this->_setupContainer($provider);
-
         $this->router = $this->provider->lookup('router');
+        $this->configuration = $this->provider->lookup('configuration');
     }
 
     /**
@@ -43,6 +41,7 @@ class Controller
         // If the controller didn't return a response, we automatically wrap the content in one
         if (!$response instanceof Response) {
             $response = new Response($response);
+            $response->headers->get('Content-type', 'text/html');
         }
 
         return $response;

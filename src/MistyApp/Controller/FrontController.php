@@ -28,9 +28,10 @@ class FrontController
 	public function handle($path)
 	{
         try {
+            // Create a request object
             $request = Request::createFromGlobals();
 
-            // Decode the param and create a Request object
+            // Decode the path and add the params to the request
             $controllerActionParams = $this->router->decode($path);
             $request->query->add($controllerActionParams->params);
 
@@ -56,10 +57,10 @@ class FrontController
 
         } catch (\Exception $e) {
 
-            // Check if we have an exception handler
-            if ($this->provider->has('exception.handler')) {
-                $exceptionHandler = $this->provider->lookup('exception.handler');
-                $response = $exceptionHandler->handle($e);
+            // Check if we have an exception controller
+            if ($this->provider->has('exception.controller')) {
+                $exceptionController = $this->provider->lookup('exception.controller');
+                $response = $exceptionController->handle($e);
 
                 if ($response instanceof Response) {
                     return $response;
