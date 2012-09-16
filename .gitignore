@@ -1,5 +1,8 @@
 # folders
 vendor/
+tests/View/temp/smarty_cache
+tests/View/temp/smarty_compiled
+tests/View/temp/smarty_config
 
 # files
 composer.lock
