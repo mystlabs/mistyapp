@@ -21,7 +21,10 @@ class ThemeTest extends UnitTest
 		)));
 
 		$this->theme = new Theme(
-			array('complete', 'simple'),
+			array(
+				'complete' => 'complete/completelayout.tpl',
+				'simple' => 'simple/simplelayout.tpl'
+			),
 			'simple',
 			__DIR__.'/themes/'
 		);

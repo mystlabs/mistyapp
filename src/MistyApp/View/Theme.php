@@ -17,26 +17,21 @@ class Theme implements ResponseFilter
     protected $configuration;
 
     protected $layouts;
-    protected $defaultLayout;
     protected $templateFolder;
     protected $selectedLayout;
 
     /**
      * Create a theme that supports the given layouts
      *
-     * @param array $layouts The layouts enabled
+     * @param array $layouts An associative array of layout_name => layout_template
      * @param string $defaultLayout The layout to apply when there's no layout specified
      * @param string $templateFolder The folder where the template files are
      */
     public function __construct(array $layouts, $defaultLayout, $templateFolder)
     {
-        $this->layouts = new ParameterBag();
-        foreach ($layouts as $layout) {
-            $this->layouts->set($layout, $layout);
-        }
-        $this->defaultLayout = $defaultLayout;
+        $this->layouts = new ParameterBag($layouts);
         $this->templateFolder = $templateFolder;
-        $this->selectedLayout = null;
+        $this->setLayout($defaultLayout);
     }
 
     protected function initialize()
@@ -90,15 +85,10 @@ class Theme implements ResponseFilter
             return; // we only apply the layout to html content
         }
 
-        $layout = $this->selectedLayout ? $this->selectedLayout : $this->defaultLayout;
-
         $content = $this
             ->initializeView($this->templateFolder)
             ->assign('content', $response->getContent())
-            ->render(sprintf(
-                '%s/layout.tpl',
-                $layout
-            ));
+            ->render($this->layouts->get($this->selectedLayout));
 
         $response->setContent($content);
         return $this;
