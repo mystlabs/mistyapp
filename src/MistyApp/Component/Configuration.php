@@ -11,7 +11,7 @@ class Configuration extends ParameterBag
      * and there is no default value
      *
      * @see ParameterBag
-     * @throws MistyApp\Exception\ConfigurationException If th
+     * @throws ConfigurationException If the request property doesn't exist
      */
     public function get($name, $default = null)
     {
@@ -23,5 +23,24 @@ class Configuration extends ParameterBag
         }
 
         return parent::get($name, $default);
+    }
+
+    /**
+     * Create a configuration object by merging N configuration files
+     *
+     * @param array $configurationFiles Array of configuration files
+     * @return Configuration
+     */
+    public static function fromFiles($configurationFiles)
+    {
+        $values = array();
+        foreach ($configurationFiles as $configuration) {
+            $values = array_merge(
+                $values,
+                require $configuration
+            );
+        }
+
+        return new self($values);
     }
 }

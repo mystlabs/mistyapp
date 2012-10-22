@@ -9,8 +9,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ThemeTest extends UnitTest
 {
+    /** @var Theme */
 	private $theme;
-	private $response;
+
+    /** @var string */
+	private $content;
+
+    /** @var Provider */
 	private $provider;
 
 	public function before()
@@ -18,6 +23,7 @@ class ThemeTest extends UnitTest
 		$this->provider = new Provider;
 		$this->provider->register('configuration', new Configuration(array(
             'system.temp.folder' => __DIR__ . '/temp',
+            'system.app.folder' => __DIR__ . '/temp',
 		)));
 
 		$this->theme = new Theme(
@@ -30,13 +36,7 @@ class ThemeTest extends UnitTest
 		);
 		$this->theme->setupContainer($this->provider);
 
-		$this->response = new Response(
-			'some content',
-			200,
-			array(
-				'Content-type' => 'text/html'
-			)
-		);
+		$this->content = 'some content';
 	}
 	/**
 	 * @expectedException MistyApp\Exception\ConfigurationException
@@ -48,35 +48,26 @@ class ThemeTest extends UnitTest
 
 	public function testSetLayout()
 	{
-		$this->theme
+		$result = $this->theme
 			->setLayout('complete')
-			->apply($this->response);
+			->apply($this->content);
 
-		$this->assertPattern('/<complete>some content<\/complete>/', $this->response->getContent());
+		$this->assertPattern('/<complete>some content<\/complete>/', $result);
 	}
 
 	public function testApplyDefault()
 	{
-		$this->theme->apply($this->response);
+		$result = $this->theme->apply($this->content);
 
-		$this->assertPattern('/<simple>some content<\/simple>/', $this->response->getContent());
+		$this->assertPattern('/<simple>some content<\/simple>/', $result);
 	}
 
 	public function testSetNoLayout()
 	{
-		$this->theme
+		$result= $this->theme
 			->setNoLayout()
-			->apply($this->response);
+			->apply($this->content);
 
-		$this->assertPattern('/some content/', $this->response->getContent());
-	}
-
-	public function testNonHtmlContent()
-	{
-		$this->response->headers->set('Content-type', 'text/json');
-
-		$this->theme->apply($this->response);
-
-		$this->assertPattern('/some content/', $this->response->getContent());
+		$this->assertPattern('/some content/', $result);
 	}
 }

@@ -9,7 +9,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class FrontControllerTest extends MistyTesting\UnitTest
 {
+    /** @var Provider */
     private $provider;
+
+    /** @var Mockery\MockInterface */
     private $mockRouter;
 
     public function before()
@@ -20,7 +23,7 @@ class FrontControllerTest extends MistyTesting\UnitTest
         $this->provider->register('router', $this->mockRouter);
     }
 
-    public function testHandleRequest()
+    public function testHandle()
     {
         $this->mockRouter
             ->shouldReceive('decode')
@@ -34,14 +37,18 @@ class FrontControllerTest extends MistyTesting\UnitTest
         $controller->handle('/');
     }
 
-    public function testHandleRequest_requestFilters()
+    public function testHandle_requestFilters()
     {
         $this->mockRouter
             ->shouldReceive('decode')
             ->andReturn(new ControllerActionParams('FrontController_Controller', 'checkRequestFilter'));
 
         $this->provider->register('request.filters', array(
-            new FrontController_RequestFilter(),
+            new FrontController_RequestFilter(function($request){
+                $request->query->add(array(
+                    'varFromFilter' => 'value'
+                ));
+            }),
         ));
 
         $controller = new FrontController();
@@ -49,14 +56,44 @@ class FrontControllerTest extends MistyTesting\UnitTest
         $controller->handle('/');
     }
 
-    public function testHandleRequest_responseFilters()
+    public function testHandle_requestFilterWithResponse()
+    {
+        $this->mockRouter
+            ->shouldReceive('decode')
+            ->andReturn(new ControllerActionParams('FrontController_Controller', 'throwException'));
+
+        $this->provider->register('request.filters', array(
+            new FrontController_RequestFilter(function(){
+                return new Response("request-filtered");
+            }),
+        ));
+
+        $this->provider->register('response.filters', array(
+            new FrontController_ResponseFilter(function($response){
+                $response->setContent(sprintf(
+                    "<%s>",
+                    $response->getContent()
+                ));
+            }),
+        ));
+
+        $controller = new FrontController();
+        $controller->setupContainer($this->provider);
+        $response = $controller->handle('/');
+
+        $this->assertEquals("<request-filtered>", $response->getContent());
+    }
+
+    public function testHandle_responseFilters()
     {
         $this->mockRouter
             ->shouldReceive('decode')
             ->andReturn(new ControllerActionParams('FrontController_Controller', 'doNothing'));
 
         $this->provider->register('response.filters', array(
-            new FrontController_ResponseFilter(),
+            new FrontController_ResponseFilter(function($response){
+                $response->setContent('altered-content');
+            }),
         ));
 
         $controller = new FrontController();
@@ -66,7 +103,7 @@ class FrontControllerTest extends MistyTesting\UnitTest
         $this->assertEquals('altered-content', $response->getContent());
     }
 
-    public function testHandleRequest_handledException()
+    public function testHandle_handledException()
     {
         $this->mockRouter
             ->shouldReceive('decode')
@@ -77,11 +114,11 @@ class FrontControllerTest extends MistyTesting\UnitTest
             ->shouldReceive('handle')
             ->andReturn(new Response());
 
-        $this->provider->register('exception.handler', $mockExceptionHandler);
+        $this->provider->register('exception.controller', $mockExceptionHandler);
 
         $controller = new FrontController();
         $controller->setupContainer($this->provider);
-        $response = $controller->handle('/');
+        $controller->handle('/');
     }
 
     /**
@@ -95,12 +132,13 @@ class FrontControllerTest extends MistyTesting\UnitTest
 
         $controller = new FrontController();
         $controller->setupContainer($this->provider);
-        $response = $controller->handle('/');
+        $controller->handle('/');
     }
 }
 
 class FrontController_Controller
 {
+    /** @var Request */
     private $request;
 
     public function __construct($request)
@@ -139,19 +177,37 @@ class FrontController_Controller
 
 class FrontController_RequestFilter
 {
+    private $callback;
+
+    public function __construct($callback)
+    {
+        $this->callback = $callback;
+    }
+    /**
+     * @param $request Request
+     */
     public function apply($request)
     {
-        $request->query->add(array(
-            'varFromFilter' => 'value'
-        ));
+        $func = $this->callback;
+        return $func($request);
     }
 }
 
 class FrontController_ResponseFilter
 {
+    private $callback;
+
+    public function __construct($callback)
+    {
+        $this->callback = $callback;
+    }
+    /**
+     * @param $response Response
+     */
     public function apply($response)
     {
-        $response->setContent('altered-content');
+        $func = $this->callback;
+        return $func($response);
     }
 }
 

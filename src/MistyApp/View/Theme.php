@@ -4,17 +4,11 @@ namespace MistyApp\View;
 
 use MistyApp\Component\ParameterBag;
 use MistyApp\Exception\ConfigurationException;
-use MistyApp\Filter\ResponseFilter;
-
 use MistyDepMan\Container;
 
-use Symfony\Component\HttpFoundation\Response;
-
-class Theme implements ResponseFilter
+class Theme
 {
     use Viewable, Container;
-
-    protected $configuration;
 
     protected $layouts;
     protected $templateFolder;
@@ -34,17 +28,12 @@ class Theme implements ResponseFilter
         $this->setLayout($defaultLayout);
     }
 
-    protected function initialize()
-    {
-        $this->configuration = $this->provider->lookup('configuration');
-    }
-
     /**
      * Select which layout should me applied to this response
      *
      * @param string $layout The name of the layout to apply
-     * @throws MistyApp\Exception\ConfigurationException If the layout doesn't exist
-     * @chainable
+     * @throws ConfigurationException If the layout doesn't exist
+     * @return $this
      */
     public function setLayout($layout)
     {
@@ -61,7 +50,7 @@ class Theme implements ResponseFilter
 
     /**
      * Disable the layout for this request
-     * @chainable
+     * @return $this
      */
     public function setNoLayout()
     {
@@ -70,27 +59,28 @@ class Theme implements ResponseFilter
     }
 
     /**
-     * Wraps the response content in the requested layout
+     * Wraps the content in the requested layout
      *
-     * @see ResponseFilter
-     * @chainable
+     * @param string $content The content to apply the theme to
+     * @return string $content
      */
-    public function apply(Response $response)
+    public function apply($content)
     {
-        if ($this->selectedLayout === false) {
-            return; // nothing to do
+        if ($this->selectedLayout !== false) {
+            $content = $this
+                ->initializeView($this->templateFolder)
+                ->assign('content', $content)
+                ->render($this->layouts->get($this->selectedLayout));
         }
 
-        if ($response->headers->get('Content-type') !== 'text/html') {
-            return; // we only apply the layout to html content
-        }
+        return $content;
+    }
 
-        $content = $this
-            ->initializeView($this->templateFolder)
-            ->assign('content', $response->getContent())
-            ->render($this->layouts->get($this->selectedLayout));
-
-        $response->setContent($content);
-        return $this;
+    /**
+     * @see Viewable
+     */
+    protected function getConfiguration()
+    {
+        return $this->provider->lookup('configuration');
     }
 }

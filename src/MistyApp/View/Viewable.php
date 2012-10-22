@@ -2,10 +2,13 @@
 
 namespace MistyApp\View;
 
+use MistyApp\Component\Configuration;
 use MistyApp\Exception\ConfigurationException;
+use MistyDepMan\Provider;
 
 trait Viewable
 {
+    /** @var \Smarty */
     protected $view;
 
     /**
@@ -13,15 +16,16 @@ trait Viewable
      * Require the class to have an instance of the provider
      *
      * @param string $templateFolder Optional template folder to use instead of the default /frontend/module/views/
-     * @chainable
+     * @return Viewable
      */
     protected function initializeView($templateFolder = null)
     {
         if (!$this->view) {
             $this->view = new \Smarty();
+            $configuration = $this->getConfiguration();
 
+            $appFolder = $configuration->get('system.app.folder');
             if ($templateFolder === null) {
-                $appFolder = $this->configuration->get('system.app.folder');
                 $module = $this->getModuleFromNamespace();
                 $templateFolder = $appFolder . '/frontend/' . $module . '/views/';
             }
@@ -30,18 +34,20 @@ trait Viewable
             $this->view->setTemplateDir($templateFolder);
 
             // setup the temporary folders
-            $tempFolder = $this->configuration->get('system.temp.folder');
+            $tempFolder = $configuration->get('system.temp.folder');
             $this->view->setCompileDir($this->checkWritable($tempFolder . '/smarty_compiled/'));
             $this->view->setCacheDir($this->checkWritable($tempFolder . '/smarty_cache/'));
             $this->view->setConfigDir($this->checkWritable($tempFolder . '/smarty_config/'));
 
             // add all the plugin folders to the view
-            foreach ($this->configuration->get('view.plugin.folders', array()) as $pluginFolder) {
+            foreach ($configuration->get('view.plugin.folders', array()) as $pluginFolder) {
                 $this->view->addPluginsDir($pluginFolder);
             }
+            $this->view->addPluginsDir($appFolder . '/../vendor/mystlabs/mistyforms/src/MistyForms/smarty_plugins');
+            $this->view->addPluginsDir($appFolder . '/../vendor/mystlabs/mistyapp/src/MistyApp/smarty_plugins');
 
             // if we are in development mode we want to regenerate the views at every render
-            if ($this->configuration->get('system.development.mode', false)) {
+            if ($configuration->get('system.development.mode', false)) {
                 $this->view->compile_check = true;
                 $this->view->force_compile = true;
             }
@@ -55,7 +61,7 @@ trait Viewable
      *
      * @param string $name
      * @param mixed $value
-     * @chainable
+     * @return Viewable
      */
     protected function assign($name, $value = null)
     {
@@ -69,6 +75,7 @@ trait Viewable
      * Render the given template
      *
      * @param string $template The template to render
+     * @return string The output of the template
      */
     protected function render($template)
     {
@@ -77,8 +84,24 @@ trait Viewable
     }
 
     /**
+     * Add a form to the view, and use the given handler to
+     *
+     * @param Handler $handler The name of the handler
+     */
+    protected function handleForm($handler)
+    {
+        $this->initializeView();
+        \MistyForms\Form::setupForm(
+            $this->view,
+            $handler
+        );
+    }
+
+    /**
      * Extract the module name from the class using this trait
      * e.g. News\Controller\NewsController => 'News'
+     *
+     * @return string
      */
     private function getModuleFromNamespace()
     {
@@ -90,9 +113,9 @@ trait Viewable
     /**
      * Check that the folder is writable, or throw an exception
      *
-     * @param $folder The folder that must be writable
+     * @param string $folder The folder that must be writable
      * @return string The folder
-     * @throws MistyApp\Exception\ConfigurationException
+     * @throws ConfigurationException
      */
     private function checkWritable($folder)
     {
@@ -112,4 +135,9 @@ trait Viewable
 
         return $folder;
     }
+
+    /**
+     * @return Configuration
+     */
+    abstract function getConfiguration();
 }

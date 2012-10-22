@@ -7,7 +7,7 @@ class ParameterBag implements \IteratorAggregate, \Countable
     protected $params;
 
     /**
-     * @param array Initial values for this bag
+     * @param array $params Initial values for this bag
      */
     public function __construct(array $params = array())
     {
@@ -17,8 +17,8 @@ class ParameterBag implements \IteratorAggregate, \Countable
     /**
      * Add a single parameter to the bag
      *
-     * @param $name The name of the parameter
-     * @param $value The value of the parameter
+     * @param string $name The name of the parameter
+     * @param mixed $value The value of the parameter
      */
     public function set($name, $value)
     {
@@ -41,6 +41,7 @@ class ParameterBag implements \IteratorAggregate, \Countable
     /**
      * Check whether the bag contains a parameter
      *
+     * @param string $name
      * @return bool
      */
     public function has($name)

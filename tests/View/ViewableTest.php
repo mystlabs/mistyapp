@@ -57,4 +57,12 @@ class ViewableTest extends UnitTest
         $expected = '<p>100 dollars</p>';
         $this->assertEquals($expected, trim($output));
     }
+
+    /**
+     * @return Configuration
+     */
+    function getConfiguration()
+    {
+        return $this->configuration;
+    }
 }

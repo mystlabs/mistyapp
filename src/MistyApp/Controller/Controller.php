@@ -2,31 +2,47 @@
 
 namespace MistyApp\Controller;
 
+use MistyApp\Component\Initializer;
 use MistyApp\View\Viewable;
-
+use MistyApp\User\SessionManager;
 use MistyDepMan\Container;
-use MistyDepMan\Provider;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class Controller
 {
-    use Viewable, Container;
+    use Viewable, Container, Initializer, Redirecter;
 
+    /** @var Request */
     protected $request;
+
+    /** @var \MistyRouting\Router */
     protected $router;
+
+    /** @var \MistyRouting\Urlifier */
+    protected $urlifier;
+
+    /** @var \MistyApp\Component\Configuration */
     protected $configuration;
 
-    public function __construct(Request $request)
+    /** @var SessionManager */
+    protected $sessionManager;
+
+    /**
+     * @param Request $request
+     */
+    public function __construct($request)
     {
         $this->request = $request;
     }
 
-    public function initialize()
+    protected function initialize()
     {
         $this->router = $this->provider->lookup('router');
+        $this->urlifier = $this->provider->lookup('urlifier');
         $this->configuration = $this->provider->lookup('configuration');
+        $this->sessionManager = $this->provider->lookup('session.manager');
     }
 
     /**
@@ -36,7 +52,11 @@ class Controller
      */
     public function handle($actionName)
     {
-        $response = $this->$actionName();
+        try {
+            $response = $this->$actionName();
+        } catch (RedirectTo $redirect) {
+            return $redirect->getResponse();
+        }
 
         // If the controller didn't return a response, we automatically wrap the content in one
         if (!$response instanceof Response) {
@@ -45,5 +65,21 @@ class Controller
         }
 
         return $response;
+    }
+
+    /**
+     * @see Viewable
+     */
+    protected function getConfiguration()
+    {
+        return $this->configuration;
+    }
+
+    /**
+     * @see Initializer
+     */
+    protected function getProvider()
+    {
+        return $this->provider;
     }
 }
