@@ -12,7 +12,7 @@
         "mystlabs/mistyrouting" : "*",
         "mystlabs/mistydoctrine" : "*",
         "mystlabs/mistyforms" : "*",
-        "smarty/smarty" : "3.1.*"
+        "eriknyk/smarty" : "3.1.*"
     },
     "require-dev": {
         "mystlabs/mistytesting" : "*"
